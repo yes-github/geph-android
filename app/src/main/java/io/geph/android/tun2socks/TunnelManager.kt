@@ -127,11 +127,20 @@ class TunnelManager(parentService: TunnelVpnService?) {
         var newFd: ParcelFileDescriptor? = null
         while (newFd == null) {
             Log.d("SETUP", "trying to make fd")
-            val builder = m_parentService!!.newBuilder().addAddress("100.64.89.64", 10).addRoute("0.0.0.0", 0).addDnsServer("1.1.1.1").addDisallowedApplication(context!!.packageName)
+
+            // HACK： 在调用addDisallowedApplication之后调用addAllowedApplication，反之亦然，将抛出UnsupportedOperationException
+            // addAllowedApplication()方法至少调用一次，则只允许通过此方法添加的应用程序（并且不允许其他人）访问。 否则（如果此方法从未被调用），所有应用程序默认都是允许的。
+            // 文档： https://www.apiref.com/android-zh/android/net/VpnService.Builder.html#addAllowedApplication(java.lang.String)
+            // val builder = m_parentService!!.newBuilder().addAddress("100.64.89.64", 10).addRoute("0.0.0.0", 0).addDnsServer("1.1.1.1").addDisallowedApplication(context!!.packageName)
+            val builder = m_parentService!!.newBuilder().addAddress("100.64.89.64", 10).addRoute("0.0.0.0", 0).addDnsServer("1.1.1.1").addAllowedApplication("com.yes.test")
+
             val excludedApps = JSONArray(mExcludeAppsJson)
             for (i in 0 until excludedApps.length()) {
                 val packageName = excludedApps.getString(i)
-                builder.addDisallowedApplication(packageName)
+
+                // HACK：改为“添加允许访问VPN连接的应用程序”
+                // builder.addDisallowedApplication(packageName)
+                builder.addAllowedApplication(packageName)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 builder.setMetered(false)
@@ -208,9 +217,10 @@ class TunnelManager(parentService: TunnelVpnService?) {
         if ((mForceBridges)!!) {
             commands.add("--use-bridges")
         }
-        if ((mBypassChinese)!!) {
+        // if ((mBypassChinese)!!) {
+            // HACK：默认打开 - 排除中国大陆流量
             commands.add("--exclude-prc")
-        }
+        // }
         if (mForceProtocol != null && mForceProtocol!!.length > 0 && mForceProtocol != "null") {
             Log.d(LOG_TAG, "mForceProtocol = " + mForceProtocol)
             commands.add("--force-protocol")
