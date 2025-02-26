@@ -9,5 +9,10 @@ export JAVA_HOME=/home/ye/tmp/jdk-17.0.14+7
 export ANDROID_HOME=/home/ye/tmp/android/android-sdk
 export HTTP_PROXY=http://192.168.32.66:19910
 export HTTPS_PROXY=https://192.168.32.66:19910
+
+# debug
 ./gradlew :app:assembleDebug
+
+# release
+./gradlew :app:assembleRelease
 ```

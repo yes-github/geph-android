@@ -30,7 +30,7 @@ download_if_needed() {
       return 0
     fi
   fi
-  curl -R "$remote_url" > "$local_file"
+  curl --proxy 192.168.32.66:19910 -R "$remote_url" > "$local_file"
 }
 
 download_if_needed "$PREFIX/geph4-client-android-armv7" $ARM_DIR/$TARGET
